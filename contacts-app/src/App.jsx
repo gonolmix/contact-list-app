@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import ContactForm from './components/ContactForm/ContactForm'
 import ContactList from './components/ContactList/ContactList'
+import SearchBar from './components/SearchBar/SearchBar'
 
 function App() {
   const [contacts, setContacts] = useState([
@@ -23,10 +25,48 @@ function App() {
     }
   ])
 
+const [searchQuery, setSearchQuery] = useState('')
+
+  const handleAddContact = (newContact) => {
+    setContacts(prevContacts => [...prevContacts, newContact])
+  }
+
+  const handleEditContact = (id, updatedData) => {
+    setContacts(prevContacts => 
+      prevContacts.map(contact => 
+        contact.id === id ? { ...contact, ...updatedData } : contact
+      )
+    )
+  }
+
+  const handleDeleteContact = (id) => {
+    setContacts(prevContacts => prevContacts.filter(contact => contact.id !== id))
+  }
+
+  const filteredContacts = contacts.filter(contact => {
+    const query = searchQuery.toLowerCase()
+    const matchesName = contact.name.toLowerCase().includes(query)
+    const matchesPhone = contact.phone.includes(query)
+    return matchesName || matchesPhone
+  })
+
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Список Контактов</h1>
-      <ContactList contacts={contacts} />
+      
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
+      
+      <ContactForm onAdd={handleAddContact} existingContacts={contacts} />
+      
+      {filteredContacts.length > 0 ? (
+        <ContactList 
+          contacts={filteredContacts} 
+          onEdit={handleEditContact}
+          onDelete={handleDeleteContact}
+        />
+      ) : (
+        <p style={{ textAlign: 'center', color: '#888' }}>Контакты не найдены</p>
+      )}
     </div>
   )
 }
