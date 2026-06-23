@@ -1,25 +1,57 @@
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 import styles from './ContactCard.module.css'
 
-function ContactCard({ contact, onEdit, onDelete }) {
+function ContactCard({ contact, allContacts, onEdit, onDelete }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [editName, setEditName] = useState(contact.name)
-  const [editPhone, setEditPhone] = useState(contact.phone)
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [error, setError] = useState('')
+
+  const startEditing = () => {
+    setEditName(contact.name)
+    setEditPhone(contact.phone)
+    setIsEditing(true)
+    setError('')
+  }
+
+  const validateEdit = (name, phone, currentId, allContactsList) => {
+    if (!name.trim() || !phone.trim()) {
+      return 'Заполните все поля'
+    }
+
+    const isDuplicate = allContactsList.some(
+      (c) =>
+        c.id !== currentId &&
+        c.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+        c.phone.trim() === phone.trim()
+    )
+
+    if (isDuplicate) {
+      return 'Контакт с таким именем и телефоном уже существует'
+    }
+
+    return ''
+  }
 
   const handleSave = () => {
-    if (editName.trim() && editPhone.trim()) {
-      onEdit(contact.id, {
-        name: editName.trim(),
-        phone: editPhone.trim()
-      })
-      setIsEditing(false)
+    const validationError = validateEdit(editName, editPhone, contact.id, allContacts)
+    if (validationError) {
+      setError(validationError)
+      return
     }
+
+    onEdit(contact.id, {
+      name: editName.trim(),
+      phone: editPhone.trim(),
+    })
+    setIsEditing(false)
+    setError('')
   }
 
   const handleCancel = () => {
-    setEditName(contact.name)
-    setEditPhone(contact.phone)
     setIsEditing(false)
+    setError('')
   }
 
   const handleDelete = () => {
@@ -31,23 +63,56 @@ function ContactCard({ contact, onEdit, onDelete }) {
   if (isEditing) {
     return (
       <div className={styles.card}>
-        <img src={contact.avatar} alt={contact.name} className={styles.avatar} />
+        <div className={styles.avatarPlaceholder} aria-hidden="true">
+          {contact.name.charAt(0).toUpperCase()}
+        </div>
         <div className={styles.info}>
+          <label htmlFor={`name-${contact.id}`} className={styles.visuallyHidden}>
+            Имя
+          </label>
           <input
+            id={`name-${contact.id}`}
             type="text"
             value={editName}
-            onChange={(e) => setEditName(e.target.value)}
+            onChange={(e) => {
+              setEditName(e.target.value)
+              setError('')
+            }}
             className={styles.input}
+            aria-label="Имя контакта"
           />
+          <label htmlFor={`phone-${contact.id}`} className={styles.visuallyHidden}>
+            Телефон
+          </label>
           <input
-            type="text"
+            id={`phone-${contact.id}`}
+            type="tel"
             value={editPhone}
-            onChange={(e) => setEditPhone(e.target.value)}
+            onChange={(e) => {
+              setEditPhone(e.target.value)
+              setError('')
+            }}
             className={styles.input}
+            aria-label="Телефон контакта"
           />
+          {error && <p className={styles.error} role="alert">{error}</p>}
           <div className={styles.actions}>
-            <button onClick={handleSave} className={`${styles.button} ${styles.save}`}>Сохранить</button>
-            <button onClick={handleCancel} className={`${styles.button} ${styles.cancel}`}>Отмена</button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className={`${styles.button} ${styles.save}`}
+              aria-label="Сохранить изменения"
+            >
+              Сохранить
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className={`${styles.button} ${styles.cancel}`}
+              aria-label="Отменить редактирование"
+            >
+              Отмена
+            </button>
           </div>
         </div>
       </div>
@@ -56,17 +121,51 @@ function ContactCard({ contact, onEdit, onDelete }) {
 
   return (
     <div className={styles.card}>
-      <img src={contact.avatar} alt={contact.name} className={styles.avatar} />
+      <div className={styles.avatarPlaceholder} aria-hidden="true">
+        {contact.name.charAt(0).toUpperCase()}
+      </div>
       <div className={styles.info}>
         <h3 className={styles.name}>{contact.name}</h3>
         <p className={styles.phone}>{contact.phone}</p>
         <div className={styles.actions}>
-          <button onClick={() => setIsEditing(true)} className={`${styles.button} ${styles.edit}`}>Редактировать</button>
-          <button onClick={handleDelete} className={`${styles.button} ${styles.delete}`}>Удалить</button>
+          <button
+            type="button"
+            onClick={startEditing}
+            className={`${styles.button} ${styles.edit}`}
+            aria-label={`Редактировать контакт ${contact.name}`}
+          >
+            Редактировать
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className={`${styles.button} ${styles.delete}`}
+            aria-label={`Удалить контакт ${contact.name}`}
+          >
+            Удалить
+          </button>
         </div>
       </div>
     </div>
   )
+}
+
+ContactCard.propTypes = {
+  contact: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    phone: PropTypes.string.isRequired,
+    avatar: PropTypes.string.isRequired,
+  }).isRequired,
+  allContacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      phone: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
 }
 
 export default ContactCard

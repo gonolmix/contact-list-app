@@ -1,5 +1,10 @@
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 import styles from './ContactForm.module.css'
+
+const generateId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
 
 function ContactForm({ onAdd, existingContacts }) {
   const [name, setName] = useState('')
@@ -8,62 +13,94 @@ function ContactForm({ onAdd, existingContacts }) {
 
   const validate = () => {
     if (!name.trim() || !phone.trim()) {
-      setError('Заполните все поля')
-      return false
+      return 'Заполните все поля'
     }
-    
+
     const isDuplicate = existingContacts.some(
-      contact => 
-        contact.name.toLowerCase() === name.trim().toLowerCase() &&
-        contact.phone.trim() === contact.phone
+      (contact) =>
+        contact.name.toLowerCase().trim() === name.trim().toLowerCase() &&
+        contact.phone.trim() === phone.trim()
     )
-    
+
     if (isDuplicate) {
-      setError('Контакт с таким именем и телефоном уже существует')
-      return false
+      return 'Контакт с таким именем и телефоном уже существует'
     }
-    
-    setError('')
-    return true
+
+    return ''
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!validate()) return
+    const validationError = validate()
+
+    if (validationError) {
+      setError(validationError)
+      return
+    }
 
     const newContact = {
-      id: Date.now().toString(),
+      id: generateId(),
       name: name.trim(),
       phone: phone.trim(),
-      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`
+      avatar: `avatar-${Date.now()}`,
     }
 
     onAdd(newContact)
     setName('')
     setPhone('')
+    setError('')
   }
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       <h2 className={styles.title}>Добавить контакт</h2>
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={styles.error} role="alert">{error}</p>}
+      <label htmlFor="name-input" className={styles.visuallyHidden}>
+        Имя
+      </label>
       <input
+        id="name-input"
         type="text"
         placeholder="Имя"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          setName(e.target.value)
+          setError('')
+        }}
         className={styles.input}
+        aria-required="true"
       />
+      <label htmlFor="phone-input" className={styles.visuallyHidden}>
+        Телефон
+      </label>
       <input
-        type="text"
+        id="phone-input"
+        type="tel"
         placeholder="Телефон"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={(e) => {
+          setPhone(e.target.value)
+          setError('')
+        }}
         className={styles.input}
+        aria-required="true"
       />
-      <button type="submit" className={styles.button}>Добавить</button>
+      <button type="submit" className={styles.button}>
+        Добавить
+      </button>
     </form>
   )
+}
+
+ContactForm.propTypes = {
+  onAdd: PropTypes.func.isRequired,
+  existingContacts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      phone: PropTypes.string.isRequired,
+    })
+  ).isRequired,
 }
 
 export default ContactForm
