@@ -6,11 +6,19 @@
 
 .title {
   margin-bottom: 24px;
-  color: #ffffff;
+  color: #805413;
 }
 
 .noContacts {
   text-align: center;
   color: #888;
   margin-top: 20px;
+}
+
+.noResults,
+.empty {
+  text-align: center;
+  color: #805413;
+  margin-top: 20px;
+  padding: 16px;
 }

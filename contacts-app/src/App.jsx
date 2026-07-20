@@ -1,34 +1,44 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ContactList from './components/ContactList/ContactList'
 import ContactForm from './components/ContactForm/ContactForm'
 import SearchBar from './components/SearchBar/SearchBar'
+import { normalizePhone } from './utils/normalizePhone'
 import styles from './App.module.css'
 
-const normalizePhone = (phone) => {
-  return phone.replace(/\D/g, '')
+const STORAGE_KEY = 'contacts-app-data'
+
+const defaultContacts = [
+  { id: '1', name: 'Иванов Иван', phone: '+375 29 111 1111' },
+  { id: '2', name: 'Владимир Ильич', phone: '+375 29 111 1112' },
+  { id: '3', name: 'Артемий Дмитриевич', phone: '+375 29 111 1113' }
+]
+
+const loadContacts = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (e) {
+    console.error('Failed to load contacts from localStorage:', e)
+  }
+  return defaultContacts
+}
+
+const saveContacts = (contacts) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts))
+  } catch (e) {
+    console.error('Failed to save contacts to localStorage:', e)
+  }
 }
 
 function App() {
-  const [contacts, setContacts] = useState([
-    { 
-      id: '1', 
-      name: 'Иванов Иван', 
-      phone: '+375 29 111 1111', 
-      avatar: 'avatar-1' 
-    },
-    { 
-      id: '2', 
-      name: 'Владимир Ильич', 
-      phone: '+375 29 111 1112', 
-      avatar: 'avatar-2' 
-    },
-    { 
-      id: '3', 
-      name: 'Артемий Дмитриевич', 
-      phone: '+375 29 111 1113', 
-      avatar: 'avatar-3' 
-    }
-  ])
+  const [contacts, setContacts] = useState(loadContacts)
+
+  useEffect(() => {
+    saveContacts(contacts)
+  }, [contacts])
 
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -74,8 +84,10 @@ function App() {
           onEdit={handleEditContact}
           onDelete={handleDeleteContact}
         />
+      ) : searchQuery ? (
+        <p className={styles.noResults}>Контакты не найдены: {searchQuery}</p>
       ) : (
-        <p className={styles.noContacts}>Контакты не найдены</p>
+        <p className={styles.empty}>Список контактов пуст. Добавьте первый контакт.</p>
       )}
     </div>
   )

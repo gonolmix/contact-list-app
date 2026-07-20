@@ -16,7 +16,7 @@
 *   **CSS Modules** used for isolated component styles (including App.module.css).
 *   **ESLint** configured with `eslint-plugin-react`, `eslint-plugin-react-hooks`, and `prop-types` validation; linting runs automatically during build.
 *   **PropTypes** for runtime type checking of component props.
-*   **Offline support**.
+*   **Offline support**: Contact data persisted in localStorage; avatar placeholders generated locally.
 
 ## Getting Started
 
