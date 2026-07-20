@@ -1,0 +1,24 @@
+.container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.title {
+  margin-bottom: 24px;
+  color: #805413;
+}
+
+.noContacts {
+  text-align: center;
+  color: #888;
+  margin-top: 20px;
+}
+
+.noResults,
+.empty {
+  text-align: center;
+  color: #805413;
+  margin-top: 20px;
+  padding: 16px;
+}
